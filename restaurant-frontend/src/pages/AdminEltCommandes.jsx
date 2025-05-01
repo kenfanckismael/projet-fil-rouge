@@ -1,41 +1,32 @@
 import { useEffect, useState } from 'react';
-import CommandeCard from '../components/CommandeCard';
-import CommandeForm from '../components/CommandeForm';
+import EltCommandeCard from '../components/EltCommandeCard';
+import EltCommandeForm from '../components/EltCommandeForm';
 import Navbar from '../components/Navbar';
 
-export default function AdminCommandes() {
+export default function AdminEltCommandes() {
+    const [eltCommandes, setEltCommandes] = useState([]);
     const [commandes, setCommandes] = useState([]);
-    const [restaurants, setRestaurants] = useState([]);
-    const [tables, setTables] = useState([]);
     const [plats, setPlats] = useState([]);
-    const [editingCommande, setEditingCommande] = useState(null);
+    const [editingEltCommande, setEditingEltCommande] = useState(null);
     const [showForm, setShowForm] = useState(false);
     
     useEffect(() => {
+        fetchEltCommandes();
         fetchCommandes();
-        fetchRestaurants();
-        fetchTables();
         fetchPlats();
     }, []);
+    
+    const fetchEltCommandes = () => {
+        fetch('http://localhost:8000/api/elt-commandes')
+            .then(res => res.json())
+            .then(data => setEltCommandes(data))
+            .catch(err => console.error(err));
+    };
     
     const fetchCommandes = () => {
         fetch('http://localhost:8000/api/commandes')
             .then(res => res.json())
             .then(data => setCommandes(data))
-            .catch(err => console.error(err));
-    };
-    
-    const fetchRestaurants = () => {
-        fetch('http://localhost:8000/api/restaurants')
-            .then(res => res.json())
-            .then(data => setRestaurants(data))
-            .catch(err => console.error(err));
-    };
-    
-    const fetchTables = () => {
-        fetch('http://localhost:8000/api/tables')
-            .then(res => res.json())
-            .then(data => setTables(data))
             .catch(err => console.error(err));
     };
     
@@ -47,33 +38,33 @@ export default function AdminCommandes() {
     };
     
     const handleCreate = () => {
-        setEditingCommande(null);
+        setEditingEltCommande(null);
         setShowForm(true);
     };
     
-    const handleEdit = (commande) => {
-        setEditingCommande(commande);
+    const handleEdit = (eltCommande) => {
+        setEditingEltCommande(eltCommande);
         setShowForm(true);
     };
     
     const handleDelete = (id) => {
-        if (window.confirm('Êtes-vous sûr de vouloir supprimer cette commande ?')) {
-            fetch(`http://localhost:8000/api/commandes/${id}`, {
+        if (window.confirm('Êtes-vous sûr de vouloir supprimer cet élément de commande ?')) {
+            fetch(`http://localhost:8000/api/elt-commandes/${id}`, {
                 method: 'DELETE',
             })
             .then(() => {
-                fetchCommandes();
+                fetchEltCommandes();
             })
             .catch(err => console.error(err));
         }
     };
     
     const handleSubmit = (formData) => {
-        const url = editingCommande 
-            ? `http://localhost:8000/api/commandes/${editingCommande.id}`
-            : `http://localhost:8000/api/commandes`;
+        const url = editingEltCommande 
+            ? `http://localhost:8000/api/elt-commandes/${editingEltCommande.id}`
+            : 'http://localhost:8000/api/elt-commandes';
             
-        const method = editingCommande ? 'PUT' : 'POST';
+        const method = editingEltCommande ? 'PUT' : 'POST';
         
         fetch(url, {
             method,
@@ -84,7 +75,7 @@ export default function AdminCommandes() {
         })
         .then(res => res.json())
         .then(() => {
-            fetchCommandes();
+            fetchEltCommandes();
             setShowForm(false);
         })
         .catch(err => console.error(err));
@@ -95,21 +86,20 @@ export default function AdminCommandes() {
             <Navbar />
             <div className="container mx-auto py-8">
                 <div className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold text-orange-500">Gestion des Commandes</h1>
+                    <h1 className="text-3xl font-bold text-orange-500">Éléments de Commandes</h1>
                     <button
                         onClick={handleCreate}
                         className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
                     >
-                        Créer une commande
+                        Ajouter un élément
                     </button>
                 </div>
                 
                 {showForm && (
                     <div className="mb-8">
-                        <CommandeForm 
-                            commande={editingCommande}
-                            restaurants={restaurants}
-                            tables={tables}
+                        <EltCommandeForm 
+                            eltCommande={editingEltCommande}
+                            commandes={commandes}
                             plats={plats}
                             onSubmit={handleSubmit}
                             onCancel={() => setShowForm(false)}
@@ -117,11 +107,11 @@ export default function AdminCommandes() {
                     </div>
                 )}
                 
-                <div className="space-y-4">
-                    {commandes.map(commande => (
-                        <CommandeCard 
-                            key={commande.id} 
-                            commande={commande} 
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {eltCommandes.map(eltCommande => (
+                        <EltCommandeCard 
+                            key={eltCommande.id} 
+                            eltCommande={eltCommande} 
                             onEdit={handleEdit}
                             onDelete={handleDelete}
                         />

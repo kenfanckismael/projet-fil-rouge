@@ -7,8 +7,12 @@ use App\Http\Controllers\TableController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PlatController;
 use App\Http\Controllers\CommandeController;
+use App\Http\Controllers\EltCommandeController;
 
+Route::apiResource('elt-commandes', EltCommandeController::class);
+Route::post('elt-commandes/multiple', [EltCommandeController::class, 'storeMultiple']);
 Route::apiResource('commandes', CommandeController::class);
+Route::post('commandes/{id}/status', [CommandeController::class, 'updateStatus']);
 Route::apiResource('plats', PlatController::class);
 Route::apiResource('tables', TableController::class);
 Route::apiResource('restaurants', RestaurantController::class);

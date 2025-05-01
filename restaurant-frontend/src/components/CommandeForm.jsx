@@ -9,23 +9,36 @@ export default function CommandeForm({ commande, restaurants, tables, plats, onS
         payment_method: '',
         payment_status: 'non_paye',
         service_type: 'sur_place',
-        plats: []
     });
 
     const [selectedPlats, setSelectedPlats] = useState([]);
     const [availableTables, setAvailableTables] = useState(tables);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (commande) {
-            setFormData(commande);
-            setSelectedPlats(commande.plats?.map(plat => ({
-                ...plat,
-                quantite: plat.pivot.quantite,
-                prix_unitaire: plat.pivot.prix_unitaire,
-                commentaire: plat.pivot.commentaire
-            })) || []);
+            setFormData({
+                ...commande,
+                restaurant_id: commande.restaurant_id || restaurants[0]?.id || '',
+                table_id: commande.table_id || tables[0]?.id || '',
+            });
+            
+            // Charger les éléments de commande existants si c'est une commande existante
+            if (commande.id) {
+                fetch(`/api/elt-commandes?commande_id=${commande.id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        setSelectedPlats(data.map(elt => ({
+                            plat_id: elt.plat_id,
+                            quantity: elt.quantity,
+                            prix: elt.prix,
+                            notes: elt.notes || '',
+                            plat: elt.plat
+                        })));
+                    });
+            }
         }
-    }, [commande]);
+    }, [commande, restaurants, tables]);
 
     useEffect(() => {
         if (formData.restaurant_id) {
@@ -37,12 +50,12 @@ export default function CommandeForm({ commande, restaurants, tables, plats, onS
                 setFormData(prev => ({ ...prev, table_id: filteredTables[0]?.id || '' }));
             }
         }
-    }, [formData.restaurant_id, formData.table_id, tables]);
+    }, [formData.restaurant_id, tables]);
 
     useEffect(() => {
         // Calculer le total prix
         const total = selectedPlats.reduce((sum, plat) => {
-            return sum + (plat.quantite * plat.prix_unitaire);
+            return sum + (plat.quantity * plat.prix);
         }, 0);
         setFormData(prev => ({ ...prev, total_prix: total }));
     }, [selectedPlats]);
@@ -53,40 +66,83 @@ export default function CommandeForm({ commande, restaurants, tables, plats, onS
     };
 
     const handleAddPlat = (plat) => {
-        if (!selectedPlats.some(p => p.id === plat.id)) {
-            setSelectedPlats(prev => [...prev, { 
-                ...plat, 
-                quantite: 1, 
-                prix_unitaire: plat.prix,
-                commentaire: '' 
-            }]);
-        }
+        setSelectedPlats(prev => [...prev, { 
+            plat_id: plat.id,
+            quantity: 1, 
+            prix: plat.prix,
+            notes: '',
+            plat: plat
+        }]);
     };
 
-    const handleRemovePlat = (platId) => {
-        setSelectedPlats(prev => prev.filter(p => p.id !== platId));
+    const handleRemovePlat = (index) => {
+        setSelectedPlats(prev => prev.filter((_, i) => i !== index));
     };
 
-    const handlePlatChange = (platId, field, value) => {
-        setSelectedPlats(prev => prev.map(plat => 
-            plat.id === platId ? { ...plat, [field]: value } : plat
+    const handlePlatChange = (index, field, value) => {
+        setSelectedPlats(prev => prev.map((plat, i) => 
+            i === index ? { ...plat, [field]: field === 'quantity' || field === 'prix' ? parseFloat(value) : value } : plat
         ));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
         
-        const platsData = selectedPlats.map(plat => ({
-            id: plat.id,
-            quantite: parseInt(plat.quantite),
-            prix_unitaire: parseFloat(plat.prix_unitaire),
-            commentaire: plat.commentaire
-        }));
-
-        onSubmit({
-            ...formData,
-            plats: platsData
-        });
+        try {
+            // Préparer les données pour l'API
+            const requestData = {
+                restaurant_id: formData.restaurant_id,
+                table_id: formData.table_id,
+                status: formData.status,
+                payment_method: formData.payment_method,
+                payment_status: formData.payment_status,
+                service_type: formData.service_type,
+                elts: selectedPlats.map(plat => ({
+                    plat_id: plat.plat_id,
+                    quantity: plat.quantity,
+                    prix: plat.prix,
+                    notes: plat.notes
+                }))
+            };
+    
+            // Déterminer l'URL et la méthode en fonction de l'existence de la commande
+            const url = commande?.id 
+                ? `http://localhost:8000/api/commandes/${commande.id}` 
+                : `http://localhost:8000/api/elt-commandes/multiple`;
+            
+            const method = commande?.id ? 'PUT' : 'POST';
+    
+            // Appel API
+            const response = await fetch(url, {
+                method,
+                headers: {
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify(requestData)
+            });
+    
+            // Vérifier si la réponse est vide
+            if (response.status === 204) { // No Content
+                onSubmit({...formData, id: commande?.id});
+                return;
+            }
+    
+            // Vérifier si la réponse est valide
+            const text = await response.text();
+            const result = text ? JSON.parse(text) : {};
+    
+            if (!response.ok) {
+                throw new Error(result.message || 'Erreur lors de l\'enregistrement');
+            }
+    
+            onSubmit(result);
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert(error.message || 'Une erreur est survenue lors de l\'enregistrement');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -195,7 +251,7 @@ export default function CommandeForm({ commande, restaurants, tables, plats, onS
             </div>
             
             <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Total: {formData.total_prix.toFixed(2)} €</label>
+                <label className="block text-gray-700 mb-2">Total: {Number(formData.total_prix)?.toFixed(2)} €</label>
             </div>
             
             <div className="mb-6">
@@ -211,19 +267,15 @@ export default function CommandeForm({ commande, restaurants, tables, plats, onS
                                     <div key={plat.id} className="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
                                         <div>
                                             <p className="font-medium">{plat.name}</p>
-                                            <p className="text-sm text-gray-500">{plat.prix.toFixed(2)} €</p>
+                                            <p className="text-sm text-gray-500">{Number(plat.prix).toFixed(2)} €</p>
                                         </div>
-                                        {!selectedPlats.some(p => p.id === plat.id) ? (
-                                            <button
-                                                type="button"
-                                                onClick={() => handleAddPlat(plat)}
-                                                className="px-2 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600"
-                                            >
-                                                Ajouter
-                                            </button>
-                                        ) : (
-                                            <span className="text-sm text-gray-400">Déjà ajouté</span>
-                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleAddPlat(plat)}
+                                            className="px-2 py-1 bg-orange-500 text-white rounded text-sm hover:bg-orange-600"
+                                        >
+                                            Ajouter
+                                        </button>
                                     </div>
                                 ))
                             }
@@ -234,18 +286,18 @@ export default function CommandeForm({ commande, restaurants, tables, plats, onS
                         <h4 className="font-medium text-gray-700 mb-2">Plats sélectionnés</h4>
                         {selectedPlats.length > 0 ? (
                             <ul className="space-y-3">
-                                {selectedPlats.map(plat => (
-                                    <li key={plat.id} className="border-b pb-3">
+                                {selectedPlats.map((plat, index) => (
+                                    <li key={`${plat.plat_id}-${index}`} className="border-b pb-3">
                                         <div className="flex justify-between items-start mb-1">
                                             <div>
-                                                <p className="font-medium">{plat.name}</p>
+                                                <p className="font-medium">{plat.plat?.name || 'Plat inconnu'}</p>
                                                 <p className="text-sm text-gray-500">
-                                                    {plat.prix_unitaire.toFixed(2)} € l'unité
+                                                    {Number(plat.prix).toFixed(2)} € l'unité
                                                 </p>
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => handleRemovePlat(plat.id)}
+                                                onClick={() => handleRemovePlat(index)}
                                                 className="text-red-500 hover:text-red-700"
                                             >
                                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -260,8 +312,8 @@ export default function CommandeForm({ commande, restaurants, tables, plats, onS
                                                 <input
                                                     type="number"
                                                     min="1"
-                                                    value={plat.quantite}
-                                                    onChange={(e) => handlePlatChange(plat.id, 'quantite', e.target.value)}
+                                                    value={plat.quantity}
+                                                    onChange={(e) => handlePlatChange(index, 'quantity', e.target.value)}
                                                     className="w-full px-2 py-1 border rounded text-sm"
                                                 />
                                             </div>
@@ -271,26 +323,26 @@ export default function CommandeForm({ commande, restaurants, tables, plats, onS
                                                     type="number"
                                                     min="0"
                                                     step="0.01"
-                                                    value={plat.prix_unitaire}
-                                                    onChange={(e) => handlePlatChange(plat.id, 'prix_unitaire', e.target.value)}
+                                                    value={plat.prix}
+                                                    onChange={(e) => handlePlatChange(index, 'prix', e.target.value)}
                                                     className="w-full px-2 py-1 border rounded text-sm"
                                                 />
                                             </div>
                                         </div>
                                         
                                         <div className="mt-1">
-                                            <label className="text-sm text-gray-600">Commentaire</label>
+                                            <label className="text-sm text-gray-600">Notes</label>
                                             <input
                                                 type="text"
-                                                value={plat.commentaire}
-                                                onChange={(e) => handlePlatChange(plat.id, 'commentaire', e.target.value)}
+                                                value={plat.notes}
+                                                onChange={(e) => handlePlatChange(index, 'notes', e.target.value)}
                                                 className="w-full px-2 py-1 border rounded text-sm"
                                                 placeholder="Sans oignons, etc."
                                             />
                                         </div>
                                         
                                         <div className="mt-1 text-right text-sm font-medium">
-                                            Total: {(plat.quantite * plat.prix_unitaire).toFixed(2)} €
+                                            Total: {(plat.quantity * plat.prix).toFixed(2)} €
                                         </div>
                                     </li>
                                 ))}
@@ -307,14 +359,16 @@ export default function CommandeForm({ commande, restaurants, tables, plats, onS
                     type="button"
                     onClick={onCancel}
                     className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
+                    disabled={isLoading}
                 >
                     Annuler
                 </button>
                 <button
                     type="submit"
-                    className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600"
+                    className="px-4 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 disabled:bg-orange-300"
+                    disabled={isLoading || selectedPlats.length === 0}
                 >
-                    Enregistrer
+                    {isLoading ? 'Enregistrement...' : 'Enregistrer'}
                 </button>
             </div>
         </form>

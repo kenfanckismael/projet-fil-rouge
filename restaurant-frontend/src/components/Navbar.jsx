@@ -12,6 +12,7 @@ export default function Navbar() {
           <Link to="/admin/categories" className="text-white hover:text-orange-200">Catégories</Link>
           <Link to="/admin/plats" className="text-white hover:text-orange-200">Plats</Link>
           <Link to="/admin/commandes" className="text-white hover:text-orange-200">Commandes</Link>
+          <Link to="/admin/elt-commandes" className="text-white hover:text-orange-200">Éléments</Link>
         </div>
       </div>
     </nav>

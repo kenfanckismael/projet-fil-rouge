@@ -23,4 +23,10 @@ class Plat extends Model
     {
         return $this->belongsTo(Restaurant::class);
     }
+
+    public function elt_commandes()
+    {
+        return $this->hasMany(EltCommande::class);
+
+    }
 }

@@ -39,7 +39,7 @@ export default function CommandeCard({ commande, onEdit, onDelete }) {
                             {commande.status.replace('_', ' ')}
                         </span>
                         <span className="text-orange-500 font-bold mt-1">
-                            {commande.total_prix.toFixed(2)} €
+                        {Number(commande.total_prix).toFixed(2)} €                        
                         </span>
                     </div>
                 </div>
@@ -72,25 +72,7 @@ export default function CommandeCard({ commande, onEdit, onDelete }) {
                     </div>
                 </div>
                 
-                <div className="mb-4">
-                    <h4 className="font-semibold text-gray-700 mb-2">Plats commandés:</h4>
-                    <ul className="space-y-2">
-                        {commande.plats?.map(plat => (
-                            <li key={plat.id} className="flex justify-between border-b pb-2">
-                                <div>
-                                    <p className="font-medium">{plat.name}</p>
-                                    <p className="text-sm text-gray-500">
-                                        {plat.pivot.quantite} x {plat.pivot.prix_unitaire.toFixed(2)} €
-                                        {plat.pivot.commentaire && ` - ${plat.pivot.commentaire}`}
-                                    </p>
-                                </div>
-                                <span className="font-medium">
-                                    {(plat.pivot.quantite * plat.pivot.prix_unitaire).toFixed(2)} €
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                
                 
                 {onEdit && onDelete && (
                     <div className="flex justify-end space-x-2">

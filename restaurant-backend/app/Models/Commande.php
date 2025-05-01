@@ -24,10 +24,18 @@ class Commande extends Model
         return $this->belongsTo(Table::class);
     }
 
-    public function plats()
+    public function elt_commandes()
     {
-        return $this->belongsToMany(Plat::class)
-                    ->withPivot('quantite', 'prix_unitaire', 'commentaire')
-                    ->withTimestamps();
+        return $this->hasMany(EltCommande::class);
+
+    }
+    public function recalculerTotalPrix()
+    {
+        $total = $this->elt_commandes->sum(function ($elt) {
+            return $elt->prix * $elt->quantity;
+        });
+
+        $this->total_prix = $total;
+        $this->save();
     }
 }
