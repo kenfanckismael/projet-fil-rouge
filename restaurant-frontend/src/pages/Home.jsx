@@ -17,6 +17,20 @@ export default function Home() {
       <Navbar />
       <div className="container mx-auto py-8">
         <h1 className="text-3xl font-bold text-orange-500 mb-8">Nos Restaurants</h1>
+        <div className='flex'>
+          <div className="">
+            {restaurants.map(restaurant => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+            ))}
+          </div>
+          <div className="">
+            {restaurants.map(restaurant => (
+              <RestaurantCard key={restaurant.id} restaurant={restaurant} />
+            ))}
+          </div>
+          <div className=""> </div>
+          <div className=""></div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {restaurants.map(restaurant => (
             <RestaurantCard key={restaurant.id} restaurant={restaurant} />

@@ -8,7 +8,9 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PlatController;
 use App\Http\Controllers\CommandeController;
 use App\Http\Controllers\EltCommandeController;
+use App\Http\Controllers\RoleController;
 
+Route::apiResource('roles', RoleController::class);
 Route::apiResource('elt-commandes', EltCommandeController::class);
 Route::post('elt-commandes/multiple', [EltCommandeController::class, 'storeMultiple']);
 Route::apiResource('commandes', CommandeController::class);
@@ -17,6 +19,7 @@ Route::apiResource('plats', PlatController::class);
 Route::apiResource('tables', TableController::class);
 Route::apiResource('restaurants', RestaurantController::class);
 Route::apiResource('categories', CategoryController::class);
+Route::get('restaurants/{client}/tables', [TableController::class, 'indexByRestaurant']);
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');

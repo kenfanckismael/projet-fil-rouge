@@ -9,3 +9,6 @@ body {
   padding: 0;
   box-sizing: border-box;
 }
+@import 'swiper/css';
+@import 'swiper/css/pagination';
+@import 'swiper/css/navigation';
