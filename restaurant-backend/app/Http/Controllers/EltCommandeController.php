@@ -54,6 +54,14 @@ class EltCommandeController extends Controller
         return response()->json($eltCommande->load(['commande', 'plat']));
     }
 
+    public function getByCommande(Commande $commande)
+{
+    return response()->json([
+        'commande' => $commande,
+        'elements' => $commande->elt_commandes()->with('plat')->get()
+    ]);
+}
+
     public function destroy(EltCommande $eltCommande)
     {
         $eltCommande->delete();

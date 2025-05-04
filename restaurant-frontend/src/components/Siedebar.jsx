@@ -21,6 +21,7 @@ const Sidebar = () => {
 
   return (
     <aside className="w-[199px] h-full flex flex-col justify-between bg-white p-4 mt-18">
+      {/* Menu Principal */}
       <div className="space-y-4">
         {menuItems.map((item, index) => {
           const isActive = location.pathname === item.path;
@@ -32,6 +33,8 @@ const Sidebar = () => {
                 isActive ? 'bg-[#F96540] text-white' : 'text-black hover:bg-gray-100'
               }`}
               onClick={() => navigate(item.path)}
+              role="menuitem"
+              aria-label={item.label}
             >
               {item.icon}
               <span className="font-nunito font-medium text-[16px] leading-[22px]">
@@ -42,10 +45,12 @@ const Sidebar = () => {
         })}
       </div>
 
-      {/* Bouton Déconnexion */}
+      {/* Déconnexion */}
       <div
         className="h-[48px] bg-[#171A1F] rounded-[10px] flex items-center gap-3 pl-3 mt-6 cursor-pointer text-white"
         onClick={() => navigate('/login')}
+        role="button"
+        aria-label="Déconnexion"
       >
         <LogOut size={20} />
         <span className="font-nunito font-medium text-[16px] leading-[22px]">

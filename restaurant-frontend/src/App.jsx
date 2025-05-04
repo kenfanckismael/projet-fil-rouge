@@ -1,13 +1,13 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Admin from './pages/Admin';
-import AdminTables from './pages/AdminTables';
+import AdminTables from './pages/admin/AdminTables';
 import AdminCategories from './pages/AdminCategories';
-import AdminPlats from './pages/AdminPlats';
+import AdminPlats from './pages/admin/AdminPlats';
 import AdminCommandes from './pages/AdminCommandes';
 import AdminEltCommandes from './pages/AdminEltCommandes';
 import ClientTablePage from './pages/ClientTablePage';
-import GestionDesCommandes from './pages/GestionDesCommandes';
+import GestionDesCommandes from './pages/admin/AdminDashboard';
 
 import Header from './components/Header';
 import HomeClient from './pages/clients/Home';

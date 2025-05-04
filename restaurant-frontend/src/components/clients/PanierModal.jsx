@@ -1,4 +1,4 @@
-import { X, PlusCircle, MinusCircle, ShoppingCart, CheckCircle } from 'lucide-react'; // Icônes à utiliser
+import { X, PlusCircle, MinusCircle, ShoppingCart, CheckCircle } from 'lucide-react';
 
 export default function PanierModal({
   items,

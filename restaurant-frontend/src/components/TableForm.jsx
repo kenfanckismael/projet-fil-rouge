@@ -25,6 +25,7 @@ const TableForm = ({ table, restaurants, onSubmit, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Validation ici si nécessaire
     onSubmit(formData);
   };
 
