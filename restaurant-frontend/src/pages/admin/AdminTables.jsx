@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import Siedebar from '../../components/Siedebar';
-import TableCard from '../../components/TableCard';
-import TableForm from '../../components/TableForm';
+import TableCard from '../../components/tables/TableCard';
+import TableForm from '../../components/tables/TableForm';
 
 const headerVariants = {
   hidden: { y: -60, opacity: 0 },

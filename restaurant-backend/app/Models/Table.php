@@ -26,7 +26,7 @@ class Table extends Model
     }
     public function generateQrCode($baseUrl)
     {
-        $url = "{$baseUrl}/client?table={$this->code}";
+        $url = "{$baseUrl}/client?table={$this->id}";
         
         // Générer le QR code
         $qrCode = QrCode::format('png')

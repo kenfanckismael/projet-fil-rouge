@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import Sidebar from '../../components/Siedebar';
-import PlatCard from '../../components/PlatCard';
-import PlatForm from '../../components/PlatForm';
+import PlatCard from '../../components/plats/PlatCard';
+import PlatForm from '../../components/plats/PlatForm';
 import { ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

@@ -59,7 +59,7 @@ const TableCard = ({ table, onEdit, onDelete }) => {
         {/* Lien */}
         <div className="flex justify-center mb-3">
           <p className="text-center font-nunito font-normal text-[10px] leading-[18px] text-gray-600">
-            Lien : https://localhost:5173/{table.restaurant?.name}/{table.restaurant?.id}/{table.code}
+            Lien : https://localhost:5173/acceuil/{table.restaurant?.name}/{table.restaurant?.id}/{table.code}
           </p>
         </div>
 

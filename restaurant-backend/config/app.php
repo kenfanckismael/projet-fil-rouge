@@ -128,6 +128,6 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
-    'client_url' => env('CLIENT_URL', 'http://localhost:5173'),
+    'client_url' => env('CLIENT_URL', 'http://localhost:5173/acceuil'),
 
 ];

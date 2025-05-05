@@ -79,7 +79,7 @@ export default function AdminDashboard() {
     try {
       const response = await fetch(`http://localhost:8000/api/commandes/${orderId}`, {
         method: 'PUT',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        headers: { 'Accept': 'application/json'},
         body: JSON.stringify({ status: newStatus }),
       });
       if (!response.ok) throw new Error();
@@ -97,7 +97,7 @@ export default function AdminDashboard() {
     try {
       const response = await fetch(`http://localhost:8000/api/commandes/${orderId}`, {
         method: 'PUT',
-        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        headers: { 'Accept': 'application/json' },
         body: JSON.stringify({ payment_status: newStatus }),
       });
       if (!response.ok) throw new Error();
