@@ -20,26 +20,36 @@ class Table extends Model
         'qr_code_path',
     ];
 
+    /**
+     * Relation : une table appartient à un restaurant.
+     */
     public function restaurant()
     {
         return $this->belongsTo(Restaurant::class);
     }
-    public function generateQrCode($baseUrl)
-    {
-        $url = "{$baseUrl}/client?table={$this->id}";
-        
-        // Générer le QR code
-        $qrCode = QrCode::format('png')
-            ->size(300)
-            ->generate($url);
-        
-        $path = "qrcodes/table_{$this->code}.png";
-        Storage::disk('public')->put($path, $qrCode);
-        
-        $this->update(['qr_code_path' => $path]);
-        
-        return $path;
-    }
 
-    
+    /**
+     * Génère un QR code vers l'URL client et stocke le fichier.
+     *
+     * @param string $baseUrl L'URL de base (ex: https://localhost:5173)
+     * @return string Le chemin du QR code enregistré dans le disque public.
+     */
+    public function generateQrCode(string $baseUrl): string
+    {
+        $url = "{$baseUrl}/client/{$this->code}";
+
+        // Nom de fichier sécurisé avec ID et code
+        $filename = "qrcodes/table_{$this->id}_{$this->code}.png";
+
+        // Génére le QR code en format PNG
+        $qrCode = QrCode::format('png')->size(300)->generate($url);
+
+        // Sauvegarde dans storage/app/public/qrcodes/
+        Storage::disk('public')->put($filename, $qrCode);
+
+        // Met à jour le chemin dans la table si nécessaire
+        $this->update(['qr_code_path' => $filename]);
+
+        return $filename;
+    }
 }

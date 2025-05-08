@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Filter, RefreshCw, Menu } from 'lucide-react';
-import { motion } from 'framer-motion';  // Importer motion pour l'animation
+import { motion } from 'framer-motion';
 import LoadingSpinner from '../../components/commadeAdmin/LoadingSpinner';
 import FilterPanel from '../../components/commadeAdmin/FilterPanel';
 import OrderList from '../../components/commadeAdmin/OrderList';
@@ -21,37 +21,48 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = isSidebarOpen ? 'hidden' : 'auto';
+  }, [isSidebarOpen]);
+
+  const fetchOrderItems = async (orderId) => {
+    const res = await fetch(`http://localhost:8000/api/commandes/${orderId}/elements`);
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    return data.elements.map(item => ({
+      ...item,
+      plat_name: item.plat?.name || 'Plat inconnu',
+    }));
+  };
+
   const fetchData = async () => {
     try {
       setIsLoading(true);
       setError(null);
+
       const [ordersRes, tablesRes] = await Promise.all([
         fetch('http://localhost:8000/api/commandes'),
         fetch('http://localhost:8000/api/tables')
       ]);
+
       if (!ordersRes.ok || !tablesRes.ok) throw new Error('Erreur API');
+
       const [ordersData, tablesData] = await Promise.all([
         ordersRes.json(),
         tablesRes.json()
       ]);
+
       const ordersWithItems = await Promise.all(
         ordersData.map(async (order) => {
           try {
-            const itemsRes = await fetch(`http://localhost:8000/api/commandes/${order.id}/elements`);
-            if (!itemsRes.ok) throw new Error();
-            const itemsData = await itemsRes.json();
-            return {
-              ...order,
-              items: itemsData.elements.map(item => ({
-                ...item,
-                plat_name: item.plat?.name || 'Plat inconnu'
-              }))
-            };
+            const items = await fetchOrderItems(order.id);
+            return { ...order, items };
           } catch {
             return { ...order, items: [], itemsError: true };
           }
         })
       );
+
       setOrders(ordersWithItems);
       setTables(tablesData);
     } catch (err) {
@@ -79,7 +90,10 @@ export default function AdminDashboard() {
     try {
       const response = await fetch(`http://localhost:8000/api/commandes/${orderId}`, {
         method: 'PUT',
-        headers: { 'Accept': 'application/json'},
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ status: newStatus }),
       });
       if (!response.ok) throw new Error();
@@ -97,7 +111,10 @@ export default function AdminDashboard() {
     try {
       const response = await fetch(`http://localhost:8000/api/commandes/${orderId}`, {
         method: 'PUT',
-        headers: { 'Accept': 'application/json' },
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ payment_status: newStatus }),
       });
       if (!response.ok) throw new Error();
@@ -117,7 +134,7 @@ export default function AdminDashboard() {
   };
 
   const filteredOrders = orders.filter(order =>
-    (filters.tableId === '' || order.table_id.toString() === filters.tableId) &&
+    (filters.tableId === '' || order.table_id?.toString() === filters.tableId) &&
     (filters.status === '' || order.status === filters.status) &&
     (filters.paymentStatus === '' || order.payment_status === filters.paymentStatus)
   );
@@ -143,12 +160,12 @@ export default function AdminDashboard() {
       )}
 
       {/* Main Content */}
-      <div className="flex-1 ml-52">
+      <div className="flex-1 md:ml-52">
         <motion.header
-          initial={{ opacity: 0, y: -20 }}  // Initialisation : invisible et légèrement au-dessus
-          animate={{ opacity: 1, y: 0 }}    // Animation : devient visible et se positionne à sa place
-          exit={{ opacity: 0, y: -20 }}     // Lors de la sortie : redevient invisible et remonte
-          transition={{ duration: 0.5 }}    // Durée de l'animation (ici 0.5s)
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.5 }}
           className="sticky top-0 z-40 bg-white shadow-md"
         >
           <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
@@ -210,7 +227,11 @@ export default function AdminDashboard() {
                 : "Aucune commande enregistrée."}
             </div>
           ) : (
-            <div className="animate-fade-in-up">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+            >
               <OrderList
                 orders={filteredOrders}
                 tables={tables}
@@ -219,7 +240,7 @@ export default function AdminDashboard() {
                 onStatusChange={updateOrderStatus}
                 onPaymentStatusChange={updatePaymentStatus}
               />
-            </div>
+            </motion.div>
           )}
         </main>
       </div>

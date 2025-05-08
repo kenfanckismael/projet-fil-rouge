@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Commande;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class CommandeController extends Controller
 {
@@ -48,6 +49,8 @@ class CommandeController extends Controller
 
     public function update(Request $request, Commande $commande)
     {
+        Log::info('Updating commande with ID: ' . $commande->id);
+        Log::info('Request data: ', $request->all());
         $validated = $request->validate([
             'restaurant_id' => 'required|exists:restaurants,id',
             'table_id' => 'required|exists:tables,id',
@@ -57,6 +60,7 @@ class CommandeController extends Controller
             'payment_status' => 'sometimes|in:paye,non_paye,partiel',
             'service_type' => 'required|in:sur_place,a_emporter,livraison',
         ]);
+        Log::info('Updating commande with data: ', $validated);
 
         try {
             DB::beginTransaction();

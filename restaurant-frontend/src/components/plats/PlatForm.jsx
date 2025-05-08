@@ -17,7 +17,6 @@ export default function PlatForm({ plat, categories, restaurants, onSubmit, onCa
     useEffect(() => {
         if (plat) {
             setFormData(plat);
-            console.log(formData);
             if (plat.image) {
                 setImagePreview(`/storage/${plat.image}`);
             }
@@ -25,12 +24,12 @@ export default function PlatForm({ plat, categories, restaurants, onSubmit, onCa
     }, [plat]);
 
     const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        setFormData((prev) => ({
-            ...prev,
-            [name]: type === 'checkbox' ? Boolean(checked) : type === 'number' ? parseFloat(value) : value,
-        }));
-    };
+      const { name, value, type, checked } = e.target;
+      setFormData((prev) => ({
+          ...prev,
+          [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) : value,
+      }));
+  };
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -46,22 +45,39 @@ export default function PlatForm({ plat, categories, restaurants, onSubmit, onCa
     };
 
     const handleSubmit = (e) => {
-        e.preventDefault();
+      e.preventDefault();
+  
+      // Conversion explicite en booléens
+      const disponible = Boolean(formData.disponible);
+      const enVedette = Boolean(formData.en_vedette);
+  
+      console.log('Valeur de disponible:', disponible, 'Type:', typeof disponible);
+      console.log('Valeur de en_vedette:', enVedette, 'Type:', typeof enVedette);
+  
+      if (typeof disponible !== 'boolean' || typeof enVedette !== 'boolean') {
+          console.error('Les champs "disponible" et "en_vedette" doivent être des booléens.');
+          return;
+      }
+  
+      const data = new FormData();
+      for (const key in formData) {
+          if (formData[key] !== null) {
+              if (key === 'image') {
+                  if (formData.image instanceof File) {
+                      data.append('image', formData.image);
+                  }
+              } else if (key === 'disponible' || key === 'en_vedette') {
+                  data.append(key, formData[key] ? '1' : '0');
+              } else {
+                  data.append(key, formData[key]);
+              }
+          }
+      }
+  
+      console.log('FormData:', Object.fromEntries(data.entries()));
+      onSubmit(data);
+  };
     
-        const data = new FormData();
-        for (const key in formData) {
-            if (formData[key] !== null) {
-                // Convertir les champs 'disponible' et 'en_vedette' en booléens explicites
-                if (key === 'disponible' || key === 'en_vedette') {
-                    data.append(key, formData[key] ? '1' : '0'); // Représentation booléenne pour l'API
-                } else {
-                    data.append(key, formData[key]);
-                }
-            }
-        }
-        console.log('FormData:', Object.fromEntries(data.entries()));
-        onSubmit(data);
-    };
 
     return (
         <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow-md">

@@ -1,7 +1,7 @@
 import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import {
-  Home,
   ClipboardList,
   ShoppingCart,
   Settings,
@@ -9,18 +9,17 @@ import {
 } from 'lucide-react';
 
 const Sidebar = () => {
-  const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
 
   const menuItems = [
-    { icon: <Home size={20} />, label: 'Dashboard', path: '/admin/dashboard' },
-    { icon: <ClipboardList size={20} />, label: 'Menu', path: '/admin/plats' },
-    { icon: <ShoppingCart size={20} />, label: 'Ordre', path: '/admin/GestionDesCommandes' },
-    { icon: <Settings size={20} />, label: 'Paramètre', path: '/admin/tables' },
+    { icon: <ClipboardList size={20} />, label: 'Menu', path: '/plats' },
+    { icon: <ShoppingCart size={20} />, label: 'Ordre', path: '/GestionDesCommandes' },
+    { icon: <Settings size={20} />, label: 'Paramètre', path: '/tables' },
   ];
 
   return (
-    <aside className="w-[199px] h-full flex flex-col justify-between bg-white p-4 mt-18">
+    <aside className="w-[199px] h-full flex flex-col bg-white p-4 mt-18">
       {/* Menu Principal */}
       <div className="space-y-4">
         {menuItems.map((item, index) => {
@@ -32,7 +31,7 @@ const Sidebar = () => {
               className={`border h-[48px] rounded-[10px] flex items-center gap-3 pl-3 cursor-pointer ${
                 isActive ? 'bg-[#F96540] text-white' : 'text-black hover:bg-gray-100'
               }`}
-              onClick={() => navigate(item.path)}
+              onClick={() => window.location.href = item.path}
               role="menuitem"
               aria-label={item.label}
             >
@@ -45,10 +44,10 @@ const Sidebar = () => {
         })}
       </div>
 
-      {/* Déconnexion */}
+      {/* Bouton Déconnexion */}
       <div
         className="h-[48px] bg-[#171A1F] rounded-[10px] flex items-center gap-3 pl-3 mt-6 cursor-pointer text-white"
-        onClick={() => navigate('/login')}
+        onClick={() => logout()}
         role="button"
         aria-label="Déconnexion"
       >
@@ -57,6 +56,8 @@ const Sidebar = () => {
           Déconnexion
         </span>
       </div>
+
+      <div className="flex-grow"></div>
     </aside>
   );
 };

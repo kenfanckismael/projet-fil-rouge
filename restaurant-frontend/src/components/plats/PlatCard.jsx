@@ -46,7 +46,7 @@ export default function PlatCard({ plat, onEdit, onDelete }) {
 
         {/* Prix */}
         <p className="absolute left-[10px] bottom-[70px] font-bold text-sm text-[#171A1F]">
-          {Number(plat.prix).toFixed(2)} €
+          {Number(plat.prix).toFixed(2)} XAF
         </p>
 
         {/* Tags */}

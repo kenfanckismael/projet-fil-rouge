@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { ShoppingCart, Coffee } from 'lucide-react';
-import PlatCard from './PlatCard';
-import PlatDetailModal from './PlatDetailModal';
-import PanierModal from './PanierModal';
-import CategoryTabs from './CategoryTabs';
+import PlatCard from '../clients/PlatCard';
+import PlatDetailModal from '../clients/PlatDetailModal';
+import PanierModal from '../clients/PanierModal';
+import CategoryTabs from '../clients/CategoryTabs';
 import { useSearchParams } from 'react-router-dom';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -117,7 +117,7 @@ export default function RestaurantMenu() {
       if (!response.ok) throw new Error('Erreur lors de la validation de la commande');
       const result = await response.json();
 
-      alert(`Commande validée ! Total: ${commande.total_prix.toFixed(2)}€`);
+      alert(`Commande validée ! Total: ${commande.total_prix.toFixed(2)}XAF`);
       setPanier([]);
       setShowPanier(false);
       setPaymentMethod('');

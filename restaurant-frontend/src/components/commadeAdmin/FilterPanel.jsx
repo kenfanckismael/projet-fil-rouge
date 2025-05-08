@@ -6,7 +6,7 @@ export default function FilterPanel({
 }) {
   return (
     <div className="bg-white shadow-md p-4 mb-4 max-w-7xl mx-auto mt-4 rounded-lg">
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {/* Table Filter */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Table</label>
@@ -59,7 +59,7 @@ export default function FilterPanel({
         </div>
 
         {/* Reset Button */}
-        <div className="flex items-end">
+        <div className="flex items-end col-span-1 sm:col-span-2 lg:col-span-1">
           <button
             className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition w-full sm:w-auto"
             onClick={onResetFilters}

@@ -5,8 +5,9 @@ export default function OrderActions({
   onPaymentStatusChange 
 }) {
   return (
-    <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-      <div className="flex flex-wrap gap-2">
+    <div className="flex flex-col sm:flex-row sm:gap-4 gap-3 w-full">
+      {/* Statut Filter */}
+      <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-start">
         <span className="text-sm font-medium text-gray-700 self-center">Statut:</span>
         <button
           className={`px-3 py-1 rounded-md text-sm transition ${
@@ -49,8 +50,9 @@ export default function OrderActions({
           Annuler
         </button>
       </div>
-      
-      <div className="flex flex-wrap gap-2">
+
+      {/* Paiement Filter */}
+      <div className="flex flex-wrap gap-2 w-full sm:w-auto justify-center sm:justify-start">
         <span className="text-sm font-medium text-gray-700 self-center">Paiement:</span>
         <button
           className={`px-3 py-1 rounded-md text-sm transition ${

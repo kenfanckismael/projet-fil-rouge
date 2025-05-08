@@ -8,7 +8,10 @@ export default defineConfig({
     proxy: {
       '/storage': 'http://localhost:8000'
       
-    }
-  }
+  },
+    port: 5173,
+    host: '0.0.0.0',
+    strictPort: true, 
+  },
 })
 

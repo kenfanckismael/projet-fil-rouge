@@ -1,4 +1,11 @@
-import { X, PlusCircle, MinusCircle, ShoppingCart, CheckCircle } from 'lucide-react';
+import {
+  X,
+  PlusCircle,
+  MinusCircle,
+  ShoppingCart,
+  CheckCircle,
+} from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 export default function PanierModal({
   items,
@@ -12,10 +19,44 @@ export default function PanierModal({
   serviceType,
   setServiceType,
 }) {
+  const modalRef = useRef(null);
+  const startY = useRef(null);
+
+  // Fermer si clic en dehors du modal
+  const handleClickOutside = (e) => {
+    if (modalRef.current && !modalRef.current.contains(e.target)) {
+      onClose();
+    }
+  };
+
+  // Détection swipe vers le bas
+  const handleTouchStart = (e) => {
+    startY.current = e.touches[0].clientY;
+  };
+
+  const handleTouchEnd = (e) => {
+    const endY = e.changedTouches[0].clientY;
+    if (startY.current && endY - startY.current > 100) {
+      onClose();
+    }
+  };
+
+  // Ajouter eventListener pour clic en dehors du modal
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 animate-fade-in">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-xl p-6 animate-slide-up">
-        
+    <div
+      className="fixed inset-0 bg-gradient-to-br from-orange-100/40 to-orange-200/30 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in"
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div
+        ref={modalRef}
+        className="bg-white/90 rounded-2xl w-full max-w-lg shadow-xl p-4 md:p-6 animate-slide-up h-[90vh] overflow-y-auto flex flex-col"
+      >
         {/* En-tête */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-2 text-orange-600">
@@ -33,7 +74,7 @@ export default function PanierModal({
             <div key={item.plat_id} className="border-b pb-3">
               <div className="flex justify-between font-semibold text-gray-700">
                 <span>{item.nom}</span>
-                <span>{(item.prix * item.quantity).toFixed(2)}€</span>
+                <span>{(item.prix * item.quantity).toFixed(2)} XAF</span>
               </div>
               <div className="flex justify-between items-center mt-2">
                 <div className="flex items-center gap-2">
@@ -69,8 +110,8 @@ export default function PanierModal({
             >
               <option value="">Sélectionner</option>
               <option value="carte">Carte bancaire</option>
-              <option value="especes">Espèces</option>
-              <option value="mobile">Mobile</option>
+              <option value="espece">Espèces</option> 
+              <option value="online">Mobile</option>
             </select>
           </div>
 
@@ -95,7 +136,7 @@ export default function PanierModal({
         <div className="mt-6">
           <div className="flex justify-between font-bold text-lg text-gray-800">
             <span>Total :</span>
-            <span>{total.toFixed(2)} €</span>
+            <span>{total.toFixed(2)} XAF</span>
           </div>
           <button
             onClick={onValider}

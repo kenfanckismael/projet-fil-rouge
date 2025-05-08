@@ -6,60 +6,68 @@ import { ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const AdminPlats = () => {
+  // États
   const [plats, setPlats] = useState([]);
   const [categories, setCategories] = useState([]);
   const [restaurants, setRestaurants] = useState([]);
   const [editingPlat, setEditingPlat] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [notification, setNotification] = useState(null);
 
+  // Effets
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        await Promise.all([fetchPlats(), fetchCategories(), fetchRestaurants()]);
+        const [platsRes, categoriesRes, restaurantsRes] = await Promise.all([
+          fetch('http://localhost:8000/api/plats'),
+          fetch('http://localhost:8000/api/categories'),
+          fetch('http://localhost:8000/api/restaurants')
+        ]);
+
+        if (!platsRes.ok || !categoriesRes.ok || !restaurantsRes.ok) {
+          throw new Error('Erreur lors du chargement des données');
+        }
+
+        const [platsData, categoriesData, restaurantsData] = await Promise.all([
+          platsRes.json(),
+          categoriesRes.json(),
+          restaurantsRes.json()
+        ]);
+
+        setPlats(Array.isArray(platsData) ? platsData : []);
+        setCategories(Array.isArray(categoriesData) ? categoriesData : []);
+        setRestaurants(Array.isArray(restaurantsData) ? restaurantsData : []);
+      } catch (err) {
+        console.error(err);
+        setError(err.message);
+        showNotification('Erreur lors du chargement des données', 'error');
       } finally {
         setLoading(false);
       }
     };
+
     fetchData();
   }, []);
 
-  const fetchPlats = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/plats');
-      if (!res.ok) throw new Error('Erreur lors de la récupération des plats');
-      const data = await res.json();
-      setPlats(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error(err);
-      setError('Erreur lors du chargement des plats.');
-    }
+  // Fonctions utilitaires
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 5000);
   };
 
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/categories');
-      const data = await res.json();
-      setCategories(data);
-    } catch (err) {
-      console.error(err);
-    }
+  const resetForm = () => {
+    setEditingPlat(null);
+    setShowForm(false);
   };
 
-  const fetchRestaurants = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/restaurants');
-      const data = await res.json();
-      setRestaurants(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
+  // Handlers
   const handleCreate = () => {
     setEditingPlat(null);
     setShowForm(true);
@@ -73,69 +81,94 @@ const AdminPlats = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce plat ?')) {
       try {
-        await fetch(`http://localhost:8000/api/plats/${id}`, { method: 'DELETE' });
+        const response = await fetch(`http://localhost:8000/api/plats/${id}`, { 
+          method: 'DELETE' 
+        });
+        
+        if (!response.ok) {
+          throw new Error('Échec de la suppression');
+        }
+        
         fetchPlats();
+        showNotification('Plat supprimé avec succès');
       } catch (err) {
         console.error(err);
+        showNotification(err.message, 'error');
       }
+    }
+  };
+
+  const fetchPlats = async () => {
+    try {
+      const res = await fetch('http://localhost:8000/api/plats');
+      if (!res.ok) throw new Error('Erreur lors de la récupération des plats');
+      const data = await res.json();
+      setPlats(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error(err);
+      showNotification('Erreur lors du chargement des plats', 'error');
     }
   };
 
   const handleSubmit = async (formData) => {
-    const url = editingPlat
-      ? `http://localhost:8000/api/plats/${editingPlat.id}`
-      : 'http://localhost:8000/api/plats';
-    const method = editingPlat ? 'PUT' : 'POST';
-
     try {
-      await fetch(url, {
-        method,
-        credentials: 'include',
-        headers: {
-          Accept: 'application/json',
-          'X-Requested-With': 'XMLHttpRequest',
-        },
+      const url = editingPlat
+        ? `http://localhost:8000/api/plats/${editingPlat.id}`
+        : 'http://localhost:8000/api/plats';
+      
+      const response = await fetch(url, {
+        method: editingPlat ? 'PUT' : 'POST',
         body: formData,
       });
-      fetchPlats();
-      setShowForm(false);
-    } catch (err) {
-      console.error(err);
-    }
-  };
 
-  const filteredPlats = plats.filter(
-    (plat) =>
-      (plat.name || '').toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (!selectedCategory || plat.categorie?.name === selectedCategory)
-  );
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (e.target.classList.contains('backdrop-blur-sm')) {
-        setShowForm(false);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la requête');
       }
-    };
-    if (showForm) {
-      window.addEventListener('click', handleClickOutside);
-    }
-    return () => {
-      window.removeEventListener('click', handleClickOutside);
-    };
-  }, [showForm]);
 
-  const modalVariants = {
-    initial: { scale: 0.8, opacity: 0 },
-    animate: { scale: 1, opacity: 1 },
-    exit: { scale: 0.8, opacity: 0 },
+      await fetchPlats();
+      showNotification(
+        editingPlat ? 'Plat modifié avec succès' : 'Plat créé avec succès'
+      );
+      resetForm();
+    } catch (err) {
+      showNotification(err.message, 'error');
+      console.error('Erreur:', err);
+    }
   };
 
+  // Filtrage
+  const filteredPlats = plats.filter(plat => {
+    const matchesSearch = plat.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !selectedCategory || plat.categorie_id === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Rendu
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#F76A00] to-[#F96540]">
+      {/* Notification */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            className={`fixed top-4 right-4 px-4 py-2 rounded-md shadow-lg z-50 ${
+              notification.type === 'error' ? 'bg-red-500' : 'bg-green-500'
+            } text-white`}
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 100 }}
+          >
+            {notification.message}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Sidebar */}
       <aside className="fixed top-0 left-0 w-[199px] h-screen bg-white z-40 shadow-lg">
         <Sidebar activeSection="Menu" />
       </aside>
 
+      {/* Header */}
       <motion.header
         className="fixed top-0 left-[199px] right-0 h-[60px] bg-[#F76A00] z-20 flex items-center justify-between px-4 sm:px-6 shadow-lg"
         initial={{ opacity: 0, y: -20 }}
@@ -151,6 +184,7 @@ const AdminPlats = () => {
         </button>
       </motion.header>
 
+      {/* Contenu principal */}
       {loading ? (
         <div className="absolute top-[60px] left-[199px] right-0 h-[calc(100vh-60px)] flex items-center justify-center bg-gradient-to-br from-[#F76A00] to-[#F96540]">
           <div className="flex flex-col items-center">
@@ -163,25 +197,30 @@ const AdminPlats = () => {
         </div>
       ) : (
         <main className="absolute top-[60px] left-[199px] right-0 h-[calc(100vh-60px)] overflow-y-auto p-6 bg-[#F5F5F5] rounded-tl-2xl">
+          {/* Formulaire modal */}
           <AnimatePresence>
             {showForm && (
               <motion.div
-                className="fixed inset-0 bg-orange-300 bg-opacity-30 backdrop-blur-lg flex items-center justify-center z-50"
+                className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
+                onClick={(e) => e.target === e.currentTarget && resetForm()}
               >
                 <motion.div
                   className="relative bg-white p-6 rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto"
-                  variants={modalVariants}
+                  variants={{
+                    initial: { scale: 0.8, opacity: 0 },
+                    animate: { scale: 1, opacity: 1 },
+                    exit: { scale: 0.8, opacity: 0 },
+                  }}
                   initial="initial"
                   animate="animate"
                   exit="exit"
                   transition={{ duration: 0.3 }}
-                  aria-live="assertive"
                 >
                   <button
-                    onClick={() => setShowForm(false)}
+                    onClick={resetForm}
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
                     aria-label="Fermer le formulaire"
                   >
@@ -197,14 +236,15 @@ const AdminPlats = () => {
                     categories={categories}
                     restaurants={restaurants}
                     onSubmit={handleSubmit}
-                    onCancel={() => setShowForm(false)}
+                    onCancel={resetForm}
                   />
                 </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <section className="sticky top-0 z-20 mb-8 flex flex-col sm:flex-row justify-between gap-4">
+          {/* Barre de recherche et filtres */}
+          <section className="sticky top-0 z-20 mb-8 flex flex-col sm:flex-row justify-between gap-4 bg-[#F5F5F5] pt-2 pb-4">
             <div className="relative w-full sm:w-1/2">
               <input
                 type="text"
@@ -225,8 +265,10 @@ const AdminPlats = () => {
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                 className="w-full px-4 py-2 bg-white rounded-lg shadow-sm flex justify-between items-center text-sm hover:bg-orange-100"
               >
-                {selectedCategory || 'Catégorie'}
-                <ChevronDown className="w-4 h-4" />
+                {selectedCategory 
+                  ? categories.find(c => c.id === selectedCategory)?.name || 'Catégorie'
+                  : 'Toutes catégories'}
+                <ChevronDown className={`w-4 h-4 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               <AnimatePresence>
                 {isDropdownOpen && (
@@ -237,11 +279,20 @@ const AdminPlats = () => {
                     exit={{ opacity: 0, y: -5 }}
                     transition={{ duration: 0.2 }}
                   >
+                    <li
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="px-4 py-2 hover:bg-orange-100 cursor-pointer"
+                    >
+                      Toutes catégories
+                    </li>
                     {categories.map((cat) => (
                       <li
                         key={cat.id}
                         onClick={() => {
-                          setSelectedCategory(cat.name);
+                          setSelectedCategory(cat.id);
                           setIsDropdownOpen(false);
                         }}
                         className="px-4 py-2 hover:bg-orange-100 cursor-pointer"
@@ -255,25 +306,36 @@ const AdminPlats = () => {
             </div>
           </section>
 
+          {/* Liste des plats */}
           <section className="bg-[#EFF3F6] p-6 rounded-xl">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
-              {filteredPlats.map((plat) => (
-                <motion.div
-                  key={plat.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <PlatCard
-                    plat={plat}
-                    category={plat.categorie?.name}
-                    restaurant={plat.restaurant?.name}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                </motion.div>
-              ))}
-            </div>
+            {error ? (
+              <div className="text-center py-8 text-red-500">
+                {error}
+              </div>
+            ) : filteredPlats.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                Aucun plat trouvé
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+                {filteredPlats.map((plat) => (
+                  <motion.div
+                    key={plat.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <PlatCard
+                      plat={plat}
+                      category={categories.find(c => c.id === plat.categorie_id)?.name}
+                      restaurant={restaurants.find(r => r.id === plat.restaurant_id)?.name}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </section>
         </main>
       )}

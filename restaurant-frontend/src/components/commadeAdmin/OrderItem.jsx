@@ -32,7 +32,7 @@ export default function OrderItem({
         <div className="text-gray-800">
           {tables.find(t => t.id === order.table_id)?.name || `Table ${order.table_id}`}
         </div>
-        <div className="font-medium">{Number(order.total_prix).toFixed(2)} €</div>
+        <div className="font-medium">{Number(order.total_prix).toFixed(2)} XAF</div>
         <div>
           <StatusBadge type="order" status={order.status} />
         </div>

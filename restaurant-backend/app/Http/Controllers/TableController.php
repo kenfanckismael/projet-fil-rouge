@@ -1,19 +1,23 @@
 <?php
 
-// app/Http/Controllers/TableController.php
-
 namespace App\Http\Controllers;
 
 use App\Models\Table;
-use App\Models\Restaurant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class TableController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        // Si un code est passé dans l'URL, on retourne uniquement cette table
+        if ($request->has('code')) {
+            return Table::with('restaurant')
+                ->where('code', $request->code)
+                ->get();
+        }
+
+        // Sinon, on retourne toutes les tables
         return Table::with('restaurant')->get();
     }
 
@@ -67,7 +71,7 @@ class TableController extends Controller
         if ($table->qr_code_path) {
             Storage::disk('public')->delete($table->qr_code_path);
         }
-        
+
         $table->delete();
 
         return response()->json(null, 204);

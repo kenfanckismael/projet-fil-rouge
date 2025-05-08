@@ -88,14 +88,15 @@ class EltCommandeController extends Controller
     $commande = isset($validated['commande_id'])
         ? Commande::findOrFail($validated['commande_id'])
         : Commande::create([
-            'restaurant_id' => 1, // ou passer une valeur par défaut dynamique
-            'table_id' => 1,
+            'restaurant_id' => 1, // idéalement à passer aussi depuis le frontend
+            'table_id' =>  $request->table_id,
             'status' => 'en_attente',
-            'payment_method' => '',
-            'payment_status' => 'non_paye',
-            'service_type' => 'sur_place',
+            'payment_method' => $request->payment_method ?? '',
+            'payment_status' => $request->payment_status ?? 'non_paye',
+            'service_type' => $request->service_type ?? 'sur_place',
             'total_prix' => 0,
         ]);
+        
 
     $elts = [];
 

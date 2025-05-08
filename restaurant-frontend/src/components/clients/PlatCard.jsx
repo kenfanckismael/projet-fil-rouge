@@ -4,17 +4,17 @@ export default function PlatCard({ plat, onClick, onAdd }) {
   return (
     <div
       onClick={onClick}
-      className={`relative w-[180px] h-[360px] transform transition-transform duration-300 ease-in-out hover:scale-105 ${
+      className={`relative w-full max-w-[180px] h-[360px] transform transition-transform duration-300 ease-in-out hover:scale-105 ${
         !plat.disponible ? 'opacity-50' : ''
       }`}
     >
       {/* Carte du plat */}
-      <div className="absolute w-[180px] h-[260px] top-[40px] bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer">
+      <div className="absolute w-full h-[260px] top-[40px] bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer">
         
         {/* Image */}
         {plat.image && (
           <div
-            className="absolute w-[110px] h-[110px] left-[35px] top-[-50px] border-4 border-white rounded-full bg-cover bg-center shadow-md animate-bounce-slow"
+            className="absolute w-[110px] h-[110px] left-1/2 transform -translate-x-1/2 top-[-50px] border-4 border-white rounded-full bg-cover bg-center shadow-md animate-bounce-slow"
             style={{ backgroundImage: `url('/storage/${plat.image}')` }}
           />
         )}
@@ -31,7 +31,7 @@ export default function PlatCard({ plat, onClick, onAdd }) {
 
         {/* Prix */}
         <p className="absolute left-[10px] bottom-[70px] font-bold text-sm text-orange-700">
-          {Number(plat.prix).toFixed(2)} €
+          {Number(plat.prix).toFixed(2)} XAF
         </p>
 
         {/* Tags */}
